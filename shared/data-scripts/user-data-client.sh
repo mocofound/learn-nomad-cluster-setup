@@ -3,12 +3,17 @@
 set -e
 
 exec > >(sudo tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
-sudo bash /ops/shared/scripts/client.sh "${cloud_env}" '${retry_join}' "${nomad_binary}"
+sudo bash /ops/shared/scripts/client.sh "${cloud_env}" '${retry_join}' "${nomad_binary}" "${nomad_license_path}" "${consul_license_path}"
 
 NOMAD_HCL_PATH="/etc/nomad.d/nomad.hcl"
+CONSUL_HCL_PATH="/etc/consul.d/consul.hcl"
 CLOUD_ENV="${cloud_env}"
 
 sed -i "s/CONSUL_TOKEN/${nomad_consul_token_secret}/g" $NOMAD_HCL_PATH
+#TODO Create agent token
+sed -i "s/CONSUL_TOKEN/${nomad_consul_token_secret}/g" $CONSUL_HCL_PATH
+#sudo sed -i "s/NOMAD_LICENSE_PATH/${nomad_license_path}/g" $NOMAD_HCL_PATH
+#sudo sed -i "s/CONSUL_LICENSE_PATH/${consul_license_path}/g" $CONSUL_HCL_PATH
 
 case $CLOUD_ENV in
   aws)

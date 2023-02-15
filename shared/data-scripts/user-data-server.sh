@@ -3,14 +3,16 @@
 set -e
 
 exec > >(sudo tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
-sudo bash /ops/shared/scripts/server.sh "${cloud_env}" "${server_count}" '${retry_join}' "${nomad_binary}"
+sudo bash /ops/shared/scripts/server.sh "${cloud_env}" "${server_count}" '${retry_join}' "${nomad_binary}" "${nomad_license_path}" "${consul_license_path}"
 
 ACL_DIRECTORY="/ops/shared/config"
 CONSUL_BOOTSTRAP_TOKEN="/tmp/consul_bootstrap"
 NOMAD_BOOTSTRAP_TOKEN="/tmp/nomad_bootstrap"
 NOMAD_USER_TOKEN="/tmp/nomad_user_token"
+NOMAD_HCL_PATH="/etc/nomad.d/nomad.hcl"
+CONSUL_HCL_PATH="/etc/consul.d/consul.hcl"
 
-sed -i "s/CONSUL_TOKEN/${nomad_consul_token_secret}/g" /etc/nomad.d/nomad.hcl
+sed -i "s/CONSUL_TOKEN/${nomad_consul_token_secret}/g" $NOMAD_HCL_PATH
 
 sudo systemctl restart nomad
 

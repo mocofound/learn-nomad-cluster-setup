@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -aex
 
 CONFIGDIR=/ops/shared/config
 
@@ -9,6 +9,8 @@ VAULTCONFIGDIR=/etc/vault.d
 NOMADCONFIGDIR=/etc/nomad.d
 CONSULTEMPLATECONFIGDIR=/etc/consul-template.d
 HOME_DIR=ubuntu
+#NOMADDIR=/opt/nomad
+#CONSULDIR=/opt/consul
 
 # Wait for network
 sleep 15
@@ -18,6 +20,8 @@ CLOUD=$1
 SERVER_COUNT=$2
 RETRY_JOIN=$3
 NOMAD_BINARY=$4
+NOMAD_LICENSE_PATH=$5
+CONSUL_LICENSE_PATH=$6
 
 # Get IP from metadata service
 case $CLOUD in
@@ -42,7 +46,10 @@ esac
 sed -i "s/IP_ADDRESS/$IP_ADDRESS/g" $CONFIGDIR/consul.hcl
 sed -i "s/SERVER_COUNT/$SERVER_COUNT/g" $CONFIGDIR/consul.hcl
 sed -i "s/RETRY_JOIN/$RETRY_JOIN/g" $CONFIGDIR/consul.hcl
+sed -i "s+CONSUL_LICENSE_PATH+$CONSUL_LICENSE_PATH+g" $CONFIGDIR/consul.hcl
+
 sudo cp $CONFIGDIR/consul.hcl $CONSULCONFIGDIR
+sudo cp $CONFIGDIR/consul-license.hclic $CONSULCONFIGDIR
 sudo cp $CONFIGDIR/consul_$CLOUD.service /etc/systemd/system/consul.service
 
 sudo systemctl enable consul.service
@@ -70,8 +77,12 @@ if [[ `wget -S --spider $NOMAD_BINARY  2>&1 | grep 'HTTP/1.1 200 OK'` ]]; then
 fi
 
 sed -i "s/SERVER_COUNT/$SERVER_COUNT/g" $CONFIGDIR/nomad.hcl
+sed -i "s+NOMAD_LICENSE_PATH+$NOMAD_LICENSE_PATH+g" $CONFIGDIR/nomad.hcl
+
 sudo cp $CONFIGDIR/nomad.hcl $NOMADCONFIGDIR
+sudo cp $CONFIGDIR/nomad-license.hclic $NOMADCONFIGDIR
 sudo cp $CONFIGDIR/nomad.service /etc/systemd/system/nomad.service
+
 
 sudo systemctl enable nomad.service
 sudo systemctl start nomad.service
@@ -97,4 +108,4 @@ echo "export CONSUL_RPC_ADDR=$IP_ADDRESS:8400" | sudo tee --append /home/$HOME_D
 echo "export CONSUL_HTTP_ADDR=$IP_ADDRESS:8500" | sudo tee --append /home/$HOME_DIR/.bashrc
 echo "export VAULT_ADDR=http://$IP_ADDRESS:8200" | sudo tee --append /home/$HOME_DIR/.bashrc
 echo "export NOMAD_ADDR=http://$IP_ADDRESS:4646" | sudo tee --append /home/$HOME_DIR/.bashrc
-echo "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre"  | sudo tee --append /home/$HOME_DIR/.bashrc
+echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64/jre"  | sudo tee --append /home/$HOME_DIR/.bashrc

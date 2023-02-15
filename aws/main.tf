@@ -27,6 +27,15 @@ resource "aws_security_group" "consul_nomad_ui_ingress" {
   }
 
   ingress {
+    from_port       = 9998
+    to_port         = 9999
+    protocol        = "tcp"
+    cidr_blocks     = [var.allowlist_ip]
+  }
+
+
+
+  ingress {
     from_port = 0
     to_port   = 0
     protocol  = "-1"
@@ -68,6 +77,27 @@ resource "aws_security_group" "ssh_ingress" {
   }
 }
 
+resource "aws_security_group" "rdp_ingress" {
+  name   = "${var.name}-rdp-ingress"
+  vpc_id = data.aws_vpc.default.id
+
+  # SSH
+  ingress {
+    from_port   = 3389
+    to_port     = 3389
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    #cidr_blocks = [var.allowlist_ip]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 resource "aws_security_group" "allow_all_internal" {
   name   = "${var.name}-allow-all-internal"
   vpc_id = data.aws_vpc.default.id
@@ -97,6 +127,34 @@ resource "aws_security_group" "clients_ingress" {
     protocol  = "-1"
     self      = true
   }
+
+  ingress {
+    from_port       = 8080
+    to_port         = 8080
+    protocol        = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+    ingress {
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port       = 9998
+    to_port         = 9999
+    protocol        = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # ingress {
+  #   from_port       = 0
+  #   to_port         = 0
+  #   protocol        = "tcp"
+  #   cidr_blocks = ["0.0.0.0/0"]
+  # }
 
   egress {
     from_port   = 0
@@ -152,6 +210,8 @@ resource "aws_instance" "server" {
     nomad_binary              = var.nomad_binary
     nomad_consul_token_id     = var.nomad_consul_token_id
     nomad_consul_token_secret = var.nomad_consul_token_secret
+    nomad_license_path             = var.nomad_license_path
+    consul_license_path            = var.consul_license_path
   })
   iam_instance_profile = aws_iam_instance_profile.instance_profile.name
 
@@ -200,6 +260,8 @@ resource "aws_instance" "client" {
     region                    = var.region
     cloud_env                 = "aws"
     retry_join                = var.retry_join
+    nomad_license_path             = var.nomad_license_path
+    consul_license_path              = var.consul_license_path 
     nomad_binary              = var.nomad_binary
     nomad_consul_token_secret = var.nomad_consul_token_secret
   })

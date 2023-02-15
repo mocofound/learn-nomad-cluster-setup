@@ -5,6 +5,7 @@ datacenter = "dc1"
 # Enable the client
 client {
   enabled = true
+  #license_path = "NOMAD_LICENSE_PATH"
   options {
     "driver.raw_exec.enable"    = "1"
     "docker.privileged.enabled" = "true"

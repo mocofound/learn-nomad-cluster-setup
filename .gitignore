@@ -11,3 +11,7 @@ Vagrantfile
 ignore*
 nomad.token
 *.pem
+shared/scripts/setup_ent.sh
+shared/scripts/setup_oss_golden.sh
+shared/config/nomad-license.hclic
+shared/config/consul-license.hclic
