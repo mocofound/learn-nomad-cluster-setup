@@ -1,11 +1,13 @@
 #!/bin/bash
 
-set -e
+set -aex
 
 CONFIGDIR=/ops/shared/config
 
 CONSULCONFIGDIR=/etc/consul.d
+CONSULDIR=/opt/consul
 NOMADCONFIGDIR=/etc/nomad.d
+NOMADDIR=/opt/nomad
 CONSULTEMPLATECONFIGDIR=/etc/consul-template.d
 HOME_DIR=ubuntu
 
@@ -16,6 +18,8 @@ DOCKER_BRIDGE_IP_ADDRESS=(`ifconfig docker0 2>/dev/null|awk '/inet addr:/ {print
 CLOUD=$1
 RETRY_JOIN=$2
 NOMAD_BINARY=$3
+NOMAD_LICENSE_PATH=$4
+CONSUL_LICENSE_PATH=$5
 
 # Get IP from metadata service
 case $CLOUD in
@@ -39,7 +43,10 @@ esac
 # Consul
 sed -i "s/IP_ADDRESS/$IP_ADDRESS/g" $CONFIGDIR/consul_client.hcl
 sed -i "s/RETRY_JOIN/$RETRY_JOIN/g" $CONFIGDIR/consul_client.hcl
+sed -i "s+CONSUL_LICENSE_PATH+$CONSUL_LICENSE_PATH+g" $CONFIGDIR/consul_client.hcl
+
 sudo cp $CONFIGDIR/consul_client.hcl $CONSULCONFIGDIR/consul.hcl
+sudo cp $CONFIGDIR/consul-license.hclic $CONSULCONFIGDIR
 sudo cp $CONFIGDIR/consul_$CLOUD.service /etc/systemd/system/consul.service
 
 sudo systemctl enable consul.service
@@ -56,7 +63,10 @@ if [[ `wget -S --spider $NOMAD_BINARY  2>&1 | grep 'HTTP/1.1 200 OK'` ]]; then
   sudo chown root:root /usr/local/bin/nomad
 fi
 
+sed -i "s+NOMAD_LICENSE_PATH+$NOMAD_LICENSE_PATH+g" $CONFIGDIR/nomad_client.hcl
+
 sudo cp $CONFIGDIR/nomad_client.hcl $NOMADCONFIGDIR/nomad.hcl
+sudo cp $CONFIGDIR/nomad-license.hclic $NOMADCONFIGDIR
 sudo cp $CONFIGDIR/nomad.service /etc/systemd/system/nomad.service
 
 sudo systemctl enable nomad.service
@@ -80,4 +90,4 @@ sudo mv /etc/resolv.conf.new /etc/resolv.conf
 # Set env vars for tool CLIs
 echo "export VAULT_ADDR=http://$IP_ADDRESS:8200" | sudo tee --append /home/$HOME_DIR/.bashrc
 echo "export NOMAD_ADDR=http://$IP_ADDRESS:4646" | sudo tee --append /home/$HOME_DIR/.bashrc
-echo "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre"  | sudo tee --append /home/$HOME_DIR/.bashrc
+echo "export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64/jre"  | sudo tee --append /home/$HOME_DIR/.bashrc

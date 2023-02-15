@@ -17,3 +17,7 @@ The Consul UI can be accessed at http://${aws_instance.server[0].public_ip}:8500
 with the bootstrap token: ${var.nomad_consul_token_secret}
 CONFIGURATION
 }
+
+output "lb_address_client_lb" {
+  value = "http://${aws_elb.client_lb.dns_name}"
+}

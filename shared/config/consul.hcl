@@ -1,4 +1,5 @@
 data_dir = "/opt/consul/data"
+license_path = "CONSUL_LICENSE_PATH"
 bind_addr = "0.0.0.0"
 client_addr = "0.0.0.0"
 advertise_addr = "IP_ADDRESS"

@@ -3,6 +3,16 @@ variable "name" {
   default     = "nomad"
 }
 
+variable "nomad_license_path" {
+  description = "Nomad Enterprise License"
+  default = "/etc/nomad.d/nomad-license.hclic"
+}
+
+variable "consul_license_path" {
+  description = "Consul Enterprise License"
+  default = "/etc/consul.d/consul-license.hclic"
+}
+
 variable "region" {
   description = "The AWS region to deploy to."
 }

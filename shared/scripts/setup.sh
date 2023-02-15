@@ -9,7 +9,7 @@ cd /ops
 
 CONFIGDIR=/ops/shared/config
 
-CONSULVERSION=1.11.4
+CONSULVERSION=1.14.4+ent
 CONSULDOWNLOAD=https://releases.hashicorp.com/consul/${CONSULVERSION}/consul_${CONSULVERSION}_linux_amd64.zip
 CONSULCONFIGDIR=/etc/consul.d
 CONSULDIR=/opt/consul
@@ -19,7 +19,8 @@ VAULTDOWNLOAD=https://releases.hashicorp.com/vault/${VAULTVERSION}/vault_${VAULT
 VAULTCONFIGDIR=/etc/vault.d
 VAULTDIR=/opt/vault
 
-NOMADVERSION=1.3.3
+NOMADVERSION=1.3.3+ent
+#NOMADDOWNLOAD=https://releases.hashicorp.com/nomad/${NOMADVERSION}/nomad_${NOMADVERSION}_linux_amd64.zip
 NOMADDOWNLOAD=https://releases.hashicorp.com/nomad/${NOMADVERSION}/nomad_${NOMADVERSION}_linux_amd64.zip
 NOMADCONFIGDIR=/etc/nomad.d
 NOMADDIR=/opt/nomad
@@ -62,7 +63,7 @@ sudo ufw disable || echo "ufw not installed"
 curl -L $CONSULDOWNLOAD > consul.zip
 
 ## Install
-sudo unzip consul.zip -d /usr/local/bin
+sudo unzip -o consul.zip -d /usr/local/bin
 sudo chmod 0755 /usr/local/bin/consul
 sudo chown root:root /usr/local/bin/consul
 
@@ -77,7 +78,7 @@ sudo chmod 755 $CONSULDIR
 curl -L $VAULTDOWNLOAD > vault.zip
 
 ## Install
-sudo unzip vault.zip -d /usr/local/bin
+sudo unzip -o vault.zip -d /usr/local/bin
 sudo chmod 0755 /usr/local/bin/vault
 sudo chown root:root /usr/local/bin/vault
 
@@ -92,7 +93,7 @@ sudo chmod 755 $VAULTDIR
 curl -L $NOMADDOWNLOAD > nomad.zip
 
 ## Install
-sudo unzip nomad.zip -d /usr/local/bin
+sudo unzip -o nomad.zip -d /usr/local/bin
 sudo chmod 0755 /usr/local/bin/nomad
 sudo chown root:root /usr/local/bin/nomad
 
@@ -117,17 +118,25 @@ sudo chmod 755 $CONSULTEMPLATECONFIGDIR
 sudo mkdir -p $CONSULTEMPLATEDIR
 sudo chmod 755 $CONSULTEMPLATEDIR
 
+# sudo cat <<-EOF > /var/nomad-license.hclic
+# EOF
+
+# sudo cat <<-EOF > /var/consul-license.hclic
+# EOF
 
 # Docker
 distro=$(lsb_release -si | tr '[:upper:]' '[:lower:]')
-sudo apt-get install -y apt-transport-https ca-certificates gnupg2 
+sudo apt-get install -y apt-transport-https ca-certificates gnupg2 lsb-release
 curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+#sudo rm /var/lib/docker
 sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/${distro} $(lsb_release -cs) stable"
 sudo apt-get update
 sudo apt-get install -y docker-ce
 
 # Java
 sudo add-apt-repository -y ppa:openjdk-r/ppa
+sudo apt-get clean
+sudo apt-get autoclean
 sudo apt-get update 
-sudo apt-get install -y openjdk-8-jdk
+sudo apt-get install -y openjdk-11-jdk
 JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:bin/java::")
